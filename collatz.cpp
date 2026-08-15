@@ -225,7 +225,7 @@ bool exportTablesToJson(const char* fileName) {
 
 
 int main() {
-    uint64_t exp = 40;
+    uint64_t exp = 32;
     prunnedEquivalenceTable prunnedEquivalenceTable(exp);
     return exportTablesToJson("prunned_tables.json") ? 0 : 1;
 }
