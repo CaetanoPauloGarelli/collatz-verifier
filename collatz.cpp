@@ -16,32 +16,31 @@
     for (;;) std::this_thread::sleep_for(std::chrono::hours(24));
 }
 
-//bool complexVerify(boost::multiprecision::cpp_int number){
+bool complexVerify(boost::multiprecision::cpp_int num){
 
-//    const boost::multiprecision::cpp_int initNum = num;
+    const boost::multiprecision::cpp_int initNum = num;
 
-//    if ((num & 1) == 0) num /= 2;
-//    else num = (num * 3) + 1;
-//    while (initNum < num) {
-//        if ((num & 1) == 0) num /= 2;
-//        else num = (num * 3) + 1;
-//    }
-//    if (num == initNum) {
-//        std::cout << "The number: " << initNum << "appears to be a counterexample";
-//        std::cout.flush();
-//        freezeOnCounterexample();
-//    }
-//
-//    return true;
-//}
+    if ((num & 1) == 0) num /= 2;
+    else num = (num * 3) + 1;
+    while (initNum < num) {
+        if ((num & 1) == 0) num /= 2;
+        else num = (num * 3) + 1;
+    }
+    if (num == initNum) {
+        std::cout << "The number: " << initNum << "appears to be a counterexample";
+        std::cout.flush();
+        freezeOnCounterexample();
+    }
+
+    return true;
+}
 
 bool simpleVerify(uint64_t num){
     uint64_t initNum = num;
     if((num & 1) == 0) num = num/2;
     else {
         if (num > (UINT64_MAX - 1) / 3){
-            std::cout << "overflow by number: " << initNum;
-            for (;;) std::this_thread::sleep_for(std::chrono::hours(24));//return complexVerify(initNum);
+            return complexVerify(initNum);
         }
         num = (num * 3) + 1;
     }
@@ -49,8 +48,7 @@ bool simpleVerify(uint64_t num){
         if((num & 1) == 0) num = num/2;
         else {
             if (num > (UINT64_MAX - 1) / 3){
-                std::cout << "overflow by number: " << initNum;
-                for (;;) std::this_thread::sleep_for(std::chrono::hours(24));//return complexVerify(initNum);
+                return complexVerify(initNum);
             }
             num = (num * 3) + 1;
         }
@@ -73,6 +71,7 @@ struct TableSnapshot {
     size_t tableSize;
     long double percentageImprovement;
     long double speedUp;
+    long double logSpeedUp;
     long double totalComputationMilliseconds;
     long double tableComputationMilliseconds;
 };
@@ -176,6 +175,7 @@ class prunnedEquivalenceTable{
                 table.size(),
                 static_cast<long double>(table.size()) / powerOfExp,
                 static_cast<long double>(powerOfExp) / table.size(),
+                static_cast<long double>(std::log((powerOfExp) / table.size())),
                 std::chrono::duration<long double, std::milli>(totalComputationTime).count(),
                 std::chrono::duration<long double, std::milli>(tableComputationTime).count()
             });
@@ -184,6 +184,8 @@ class prunnedEquivalenceTable{
             std::cout << "table exponenet:" << powerOfExp << std::endl;
             std::cout << "percentage improvement: " << static_cast<long double>(table.size()) / powerOfExp << std::endl;
             std::cout << "speed-up: " << static_cast<long double>(powerOfExp) / table.size() << std::endl;
+            std::cout << "log speed-up: " << static_cast<long double>(std::log((powerOfExp) / table.size())) << std::endl;
+            
             std::cout << "total computation time: "
                       << std::chrono::duration<long double, std::milli>(totalComputationTime).count()
                       << " ms" << std::endl;
