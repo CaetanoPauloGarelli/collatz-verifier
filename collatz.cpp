@@ -16,6 +16,9 @@
     for (;;) std::this_thread::sleep_for(std::chrono::hours(24));
 }
 
+
+//uint64 has an upper bound on the range of numbers it can store. As such, it's necessary 
+//to employ a different standard to handle numbers outside the range of uint64
 bool complexVerify(boost::multiprecision::cpp_int num){
 
     const boost::multiprecision::cpp_int initNum = num;
@@ -53,6 +56,7 @@ bool simpleVerify(uint64_t num){
             num = (num * 3) + 1;
         }
     }
+
     if(num == initNum){
         std::cout << "The number: " << initNum << "appears to be a counterexample";
         std::cout.flush();
@@ -106,6 +110,7 @@ class prunnedEquivalenceTable{
     
         prunnedEquivalenceTable(uint64_t exp){
             exponent = exp;
+
             std::chrono::steady_clock::duration recursiveComputationTime{};
             auto tableComputationStart = std::chrono::steady_clock::now();
 
@@ -115,17 +120,18 @@ class prunnedEquivalenceTable{
                 
 
                 prunnedEquivalenceTable prevPrunnedTable = prunnedEquivalenceTable(exp - 1);
+
                 recursiveComputationTime = prevPrunnedTable.totalComputationTime;
                 tableComputationStart = std::chrono::steady_clock::now();
+
                 std::vector<TableEntry> prevTable = std::move(prevPrunnedTable.table);
                 table.reserve(prevTable.size()*2);
-                for(const auto& [key, first, second]: prevTable){ //key = 7 value = (27, 13)
-                    //bool anomalous = false;
-                    //if(key == 7 && value.first == 27 && value.second == 13){std::cout << "anomalous element" << std::endl;anomalous = true;}
-                    //if(anomalous){std::cout << "value.second: " << value.second << std::endl;}
-                    if((second & 1) == 0){
-                        //if(anomalous){std::cout << "even step" << std::endl;}
 
+                for(const auto& [key, first, second]: prevTable){
+                    
+                    
+                    if((second & 1) == 0){
+                        
                         uint64_t pseudosecond = second/2;
                         if(first < powerOfExp){ 
                             //this condition imples that the child class must be prunned, before prunning, we must verify that all members below a certain value descend to one
@@ -143,14 +149,13 @@ class prunnedEquivalenceTable{
                         //if(anomalous){std::cout << "odd step" << std::endl;}
                         table.push_back({key, first*3, (second*3 + 1)/2});
                     }
-                    //if(anomalous){std::cout << "value.first: " << value.first << "value.first + value.second: " << value.first + value.second << std::endl;}
+                    
                     if(((first+second) & 1) == 0){
-                        //if(anomalous){std::cout << "even step" << std::endl;}
                         
                         uint64_t pseudosecond = (second + first)/2;
 
                         if(first < powerOfExp){
-                            //std::cout << "second insertion got prunned" << std::endl;
+                            
                             if(pseudosecond>(key + powerOfPrevExp)){
                                 for(uint64_t i = 0; i<=(pseudosecond - (key + powerOfPrevExp))/(powerOfExp-first); i++){
                                     simpleVerify(powerOfExp*i+key + powerOfPrevExp);
@@ -160,13 +165,14 @@ class prunnedEquivalenceTable{
                             table.push_back({key + powerOfPrevExp, first, pseudosecond});
                         }
                     } else{
-                        //if(anomalous){std::cout << "odd step" << std::endl;}
                         table.push_back({key + powerOfPrevExp, first*3, ((second + first)*3+1)/2});
                     }
                 }
             } else{
                 table.push_back({0, 1, 0});
             }
+
+            //this part mostly consists of data used for analytics of code performance
             tableComputationTime = std::chrono::steady_clock::now() - tableComputationStart;
             totalComputationTime = recursiveComputationTime + tableComputationTime;
             generatedTables().push_back({
@@ -222,7 +228,6 @@ bool exportTablesToJson(const char* fileName) {
     output << "  ]\n}\n";
     return output.good();
 }
-//a
 
 
 
